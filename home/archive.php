@@ -266,6 +266,63 @@
 											</div>
 
 											<!-- Product Variant -->
+											<div class="tab-pane fade" id="v-pills-item-variants" role="tabpanel" aria-labelledby="v-pills-item-variants-tab">
+												<div class="table-container">
+													<table class="table table-hover table-border table-sm">
+														<thead>
+															<tr class="text-center">
+																<th scope="col" class="d-none">PRODUCT VARIANT ID</th>
+																<th scope="col" class="col-10">PRODUCT VARIANT NAME</th>
+																<th scope="col" class="col-2">ACTION</th>
+															</tr>
+														</thead>
+
+														<tbody>
+															<?php if (count($productVariants) > 0):
+																foreach ($productVariants as $id => $name): ?>
+																	<tr>
+																		<td class="d-none"><?= $id ?></td>
+																		<td><?= $name ?></td>
+
+																		<td>
+																			<div class="d-flex justify-content-around align-items-center">
+																				<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#variants-modal-<?= $id ?>" data-id="<?= $id ?>">
+																					UNARCHIVE
+																				</button>
+
+																				<div id="variants-modal-<?= $id ?>" class="modal fade">
+																					<div class="modal-dialog">
+																						<div class="modal-content">
+																							<div class="modal-body d-flex justify-content-center align-items-center w-100 flex-column" style="height: 200px;">
+																								<p class="h5">Are you sure you want to restore <b><?= $name ?></b>?</p>
+
+																								<form class="unarchive" id="unarchive-variants-<?= $id ?>">
+																									<input type="hidden" name="id" value="<?= $id ?>">
+																									<input type="hidden" name="action" value="restoreProductVariant">
+																									<input type="submit" class="d-none" id="submit-unarchive-variants-<?= $id ?>">
+																								</form>
+
+																								<div class="d-flex justify-content-center align-items-center mt-3 flex-row w-100">
+																									<button type="button" class="btn btn-default w-25 mx-2" data-dismiss="modal">Close</button>
+																									<label for="submit-unarchive-variants-<?= $id ?>" class="btn btn-danger w-25 mx-2" tabindex="0">Update</label>
+																								</div>
+																							</div>
+																						</div>
+																					</div>
+																				</div>
+																			</div>
+																		</td>
+																	</tr>
+															<?php endforeach;
+																else: ?>
+																<tr>
+																	<td colspan="2" class="text-center">No Archived Product Variants</td>
+																</tr>
+															<?php endif; ?>
+														</tbody>
+													</table>
+												</div>
+											</div>
 
 											<!-- Products -->
 											<div class="tab-pane fade" id="v-pills-products" role="tabpanel" aria-labelledby="v-pills-products-tab">
