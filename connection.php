@@ -1,5 +1,4 @@
-<?php 
-
+<?php
     $host = "localhost";
     $username = "root";
     $password = "";
@@ -11,9 +10,8 @@
         die("Connection Failed".$conn->connect_error);
     }
 
-    else{
-
-    }
-
-
+	function dd($content) {
+		var_dump($content);
+		die();
+	};
 ?>

@@ -119,9 +119,11 @@ if (isset($_POST['action'])) {
 		$table = $actions[$action]['table'];
 		$idColumn = $actions[$action]['id'];
 		$id = $_POST['id'];
-		$archive = $actions[$action]['targetCol'] == "archive" ? "No" : "Active";
+		$targetCol = $actions[$action]['targetCol'];
+		$archive = $targetCol == "archive" ? "No" : "Active";
 
-		$sql = "UPDATE `$table` SET `archive` = '$archive' WHERE `$idColumn` = '$id'";
+		$sql = "UPDATE `$table` SET `$targetCol` = '$archive' WHERE `$idColumn` = '$id'";
+		// dd($sql);
 		$result = $conn->query($sql);
 		if ($result)
 			echo "success";

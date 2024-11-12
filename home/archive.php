@@ -32,6 +32,42 @@
 	$productVariants = [];
 	while ($row = $connection->fetch_assoc())
 		$productVariants[$row["category_product_item_type_Id"]] = $row["product_item_type_name"];
+
+	// FETCH PRODUCTS
+	$connection = $conn->query("SELECT p.product_Id as id, p.item_code as item_code, p.barcode as barcode, p.category_Id, p.category_product_Id, p.product_type_Id, p.type_Id, p.stocks as stocks, p.prize as price, p.archive as archive, c.category_Id, c.category_Name as category, cp.category_product_Id, cp.product_Name as subcategory, cpi.category_product_item_Id, cpi.product_item_name as product, cpit.category_product_item_type_Id, cpit.product_item_type_name as variant FROM products p INNER JOIN category_table c ON p.category_Id = c.category_Id INNER JOIN category_product_table cp ON p.category_product_Id = cp.category_product_Id INNER JOIN category_product_item_table cpi ON p.product_type_Id = cpi.category_product_item_Id INNER JOIN category_product_item_type_table cpit ON p.type_Id = cpit.category_product_item_type_Id WHERE p.archive = 'Yes';");
+	$products = [];
+	while ($row = $connection->fetch_assoc())
+		$products[$row["id"]] = [
+			"item_code" => $row["item_code"],
+			"barcode" => $row["barcode"],
+			"category" => $row["category"],
+			"subcategory" => $row["subcategory"],
+			"product" => $row["product"],
+			"variant" => $row["variant"],
+			"stocks" => $row["stocks"],
+			"price" => $row["price"]
+		];
+
+	// FETCH USERS
+	$connection = $conn->query("SELECT officials_Id AS id, CONCAT(first_name, \" \", last_name) AS name, email_address AS email, user_type, status, date_created FROM officials WHERE STATUS = 'Inactive' ORDER BY officials_Id DESC;");
+	$users = [];
+	while ($row = $connection->fetch_assoc())
+		$users[$row["id"]] = [
+			"name" => $row["name"],
+			"email" => $row["email"],
+			"user_type" => $row["user_type"],
+			"date_created" => date("F j, Y", strtotime($row["date_created"]))
+		];
+
+	// FETCH SUPPLIERS
+	$connection = $conn->query("SELECT supplier_Id AS id, name, contact_person, date_created FROM supplier WHERE STATUS = 'Inactive' ORDER BY supplier_Id DESC;");
+	$suppliers = [];
+	while ($row = $connection->fetch_assoc())
+		$suppliers[$row["id"]] = [
+			"name" => $row["name"],
+			"contact_person" => $row["contact_person"],
+			"date_created" => date("F j, Y", strtotime($row["date_created"]))
+		];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -74,26 +110,26 @@
 						<div class="row mt-3">
 							<div class="col-md-12">
 								<div class="row">
-									<div class="col-md-3 p-3" id="cold" style="border-radius: 5px; border-top: 10px solid #606FF2; border-left: 10px solid #606FF2; border-right: 10px solid #606FF2;">
+									<div class="col-md-2 p-3" id="cold" style="border-radius: 5px; border-top: 10px solid #606FF2; border-left: 10px solid #606FF2; border-right: 10px solid #606FF2;">
 										<div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-											<a class="nav-link nav-link-archive active text-center font-weight-bold" id="v-pills-categories-tab" data-toggle="pill" href="#v-pills-categories" role="tab" aria-controls="v-pills-categories" aria-selected="true">CATEGORIES</a>
-											<a class="nav-link nav-link-archive text-center mt-2 font-weight-bold" id="v-pills-subcategories-tab" data-toggle="pill" href="#v-pills-subcategories" role="tab" aria-controls="v-pills-subcategories" aria-selected="false">SUBCATEGORIES</a>
-											<a class="nav-link nav-link-archive text-center mt-2 font-weight-bold" id="v-pills-items-tab" data-toggle="pill" href="#v-pills-items" role="tab" aria-controls="v-pills-items" aria-selected="false">PRODUCT ITEMS</a>
-											<a class="nav-link nav-link-archive text-center mt-2 font-weight-bold" id="v-pills-item-variants-tab" data-toggle="pill" href="#v-pills-item-variants" role="tab" aria-controls="v-pills-item-variants" aria-selected="false">PRODUCT VARIANTS</a>
-											<a class="nav-link nav-link-archive text-center mt-2 font-weight-bold" id="v-pills-products-tab" data-toggle="pill" href="#v-pills-products" role="tab" aria-controls="v-pills-products" aria-selected="false">PRODUCTS</a>
-											<a class="nav-link nav-link-archive text-center mt-2 font-weight-bold" id="v-pills-accounts-tab" data-toggle="pill" href="#v-pills-accounts" role="tab" aria-controls="v-pills-accounts" aria-selected="false">ACCOUNTS</a>
-											<a class="nav-link nav-link-archive text-center mt-2 font-weight-bold" id="v-pills-suppliers-tab" data-toggle="pill" href="#v-pills-suppliers" role="tab" aria-controls="v-pills-suppliers" aria-selected="false">SUPPLIERS</a>
+											<a class="nav-link nav-link-archive hover-effect active text-center font-weight-bold" id="v-pills-categories-tab" data-toggle="pill" href="#v-pills-categories" role="tab" aria-controls="v-pills-categories" aria-selected="true">CATEGORIES</a>
+											<a class="nav-link nav-link-archive hover-effect text-center mt-2 font-weight-bold" id="v-pills-subcategories-tab" data-toggle="pill" href="#v-pills-subcategories" role="tab" aria-controls="v-pills-subcategories" aria-selected="false">CATEGORY PRODUCTS</a>
+											<a class="nav-link nav-link-archive hover-effect text-center mt-2 font-weight-bold" id="v-pills-items-tab" data-toggle="pill" href="#v-pills-items" role="tab" aria-controls="v-pills-items" aria-selected="false">PRODUCT TYPES</a>
+											<a class="nav-link nav-link-archive hover-effect text-center mt-2 font-weight-bold" id="v-pills-item-variants-tab" data-toggle="pill" href="#v-pills-item-variants" role="tab" aria-controls="v-pills-item-variants" aria-selected="false">TYPES</a>
+											<a class="nav-link nav-link-archive hover-effect text-center mt-2 font-weight-bold" id="v-pills-products-tab" data-toggle="pill" href="#v-pills-products" role="tab" aria-controls="v-pills-products" aria-selected="false">PRODUCTS</a>
+											<a class="nav-link nav-link-archive hover-effect text-center mt-2 font-weight-bold" id="v-pills-accounts-tab" data-toggle="pill" href="#v-pills-accounts" role="tab" aria-controls="v-pills-accounts" aria-selected="false">ACCOUNTS</a>
+											<a class="nav-link nav-link-archive hover-effect text-center mt-2 font-weight-bold" id="v-pills-suppliers-tab" data-toggle="pill" href="#v-pills-suppliers" role="tab" aria-controls="v-pills-suppliers" aria-selected="false">SUPPLIERS</a>
 										</div>
 									</div>
 
-									<div class="col-md-9">
+									<div class="col-md-10">
 										<div class="tab-content" id="v-pills-tabContent">
 											<!-- Category -->
 											<div class="tab-pane fade show active" id="v-pills-categories" role="tabpanel" aria-labelledby="v-pills-categories-tab">
 												<div class="table-container">
-													<table class="table table-hover table-border table-sm">
+													<table class="table table-hover table-border table-sm text-nowrap">
 														<thead>
-															<tr class="text-center">
+															<tr class="center-text">
 																<th scope="col" class="d-none">CATEGORY ID</th>
 																<th scope="col" class="col-10">CATEGORY NAME</th>
 																<th scope="col" class="col-2">ACTION</th>
@@ -103,7 +139,7 @@
 														<tbody>
 															<?php if (count($categories) > 0):
 																foreach ($categories as $id => $name): ?>
-																	<tr>
+																	<tr class="center-text">
 																		<td class="d-none"><?= $id ?></td>
 																		<td><?= $name ?></td>
 
@@ -150,11 +186,11 @@
 											<!-- Subcategory -->
 											<div class="tab-pane fade" id="v-pills-subcategories" role="tabpanel" aria-labelledby="v-pills-subcategories-tab">
 												<div class="table-container">
-													<table class="table table-hover table-border table-sm">
+													<table class="table table-hover table-border table-sm text-nowrap">
 														<thead>
-															<tr class="text-center">
-																<th scope="col" class="d-none">SUBCATEGORY ID</th>
-																<th scope="col" class="col-10">SUBCATEGORY NAME</th>
+															<tr class="center-text">
+																<th scope="col" class="d-none">CATEGORY PRODUCT ID</th>
+																<th scope="col" class="col-10">CATEGORY PRODUCT NAME</th>
 																<th scope="col" class="col-2">ACTION</th>
 															</tr>
 														</thead>
@@ -162,7 +198,7 @@
 														<tbody>
 															<?php if (count($subcategories) > 0):
 																foreach ($subcategories as $id => $name): ?>
-																	<tr>
+																	<tr class="center-text">
 																		<td class="d-none"><?= $id ?></td>
 																		<td><?= $name ?></td>
 
@@ -198,7 +234,7 @@
 															<?php endforeach;
 																else: ?>
 																<tr>
-																	<td colspan="2" class="text-center">No Archived Subcategories</td>
+																	<td colspan="2" class="text-center">No Archived Category Product</td>
 																</tr>
 															<?php endif; ?>
 														</tbody>
@@ -209,11 +245,11 @@
 											<!-- Product Items -->
 											<div class="tab-pane fade" id="v-pills-items" role="tabpanel" aria-labelledby="v-pills-items-tab">
 												<div class="table-container">
-													<table class="table table-hover table-border table-sm">
+													<table class="table table-hover table-border table-sm text-nowrap">
 														<thead>
-															<tr class="text-center">
-																<th scope="col" class="d-none">PRODUCT ITEM ID</th>
-																<th scope="col" class="col-10">PRODUCT ITEM NAME</th>
+															<tr class="center-text">
+																<th scope="col" class="d-none">PRODUCT TYPE ID</th>
+																<th scope="col" class="col-10">PRODUCT TYPE NAME</th>
 																<th scope="col" class="col-2">ACTION</th>
 															</tr>
 														</thead>
@@ -221,7 +257,7 @@
 														<tbody>
 															<?php if (count($productItems) > 0):
 																foreach ($productItems as $id => $name): ?>
-																	<tr>
+																	<tr class="center-text">
 																		<td class="d-none"><?= $id ?></td>
 																		<td><?= $name ?></td>
 
@@ -257,7 +293,7 @@
 															<?php endforeach;
 																else: ?>
 																<tr>
-																	<td colspan="2" class="text-center">No Archived Product Items</td>
+																	<td colspan="2" class="text-center">No Archived Product Type</td>
 																</tr>
 															<?php endif; ?>
 														</tbody>
@@ -268,11 +304,11 @@
 											<!-- Product Variant -->
 											<div class="tab-pane fade" id="v-pills-item-variants" role="tabpanel" aria-labelledby="v-pills-item-variants-tab">
 												<div class="table-container">
-													<table class="table table-hover table-border table-sm">
+													<table class="table table-hover table-border table-sm text-nowrap">
 														<thead>
-															<tr class="text-center">
-																<th scope="col" class="d-none">PRODUCT VARIANT ID</th>
-																<th scope="col" class="col-10">PRODUCT VARIANT NAME</th>
+															<tr class="center-text">
+																<th scope="col" class="d-none">TYPE ID</th>
+																<th scope="col" class="col-10">TYPE NAME</th>
 																<th scope="col" class="col-2">ACTION</th>
 															</tr>
 														</thead>
@@ -280,7 +316,7 @@
 														<tbody>
 															<?php if (count($productVariants) > 0):
 																foreach ($productVariants as $id => $name): ?>
-																	<tr>
+																	<tr class="center-text">
 																		<td class="d-none"><?= $id ?></td>
 																		<td><?= $name ?></td>
 
@@ -316,7 +352,7 @@
 															<?php endforeach;
 																else: ?>
 																<tr>
-																	<td colspan="2" class="text-center">No Archived Product Variants</td>
+																	<td colspan="2" class="text-center">No Archived Type</td>
 																</tr>
 															<?php endif; ?>
 														</tbody>
@@ -325,75 +361,84 @@
 											</div>
 
 											<!-- Products -->
-											<div class="tab-pane fade" id="v-pills-products" role="tabpanel" aria-labelledby="v-pills-products-tab">
-												<div class="table-container">
-													<table class="table table-hover table-border table-sm">
+											<div class="tab-pane fade1" id="v-pills-products" role="tabpanel" aria-labelledby="v-pills-products-tab">
+												<div class="table-container overflow-x-auto">
+													<table class="table table-hover table-border table-sm text-nowrap">
 														<thead>
-															<tr>
-																<th scope="col" class="text-center d-none" style="font-size: 20px; font-weight: 700">PRODUCT ID</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">ITEM CODE</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">BARCODE</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">CATEGORY</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">PRODUCT</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">PRODUCT TYPES</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">TYPES</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">STOCKS</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">PRIZE</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">ACTION</th>
+															<tr class="center-text">
+																<th scope="col" class="d-none">PRODUCT ID</th>
+																<th scope="col" class="col-2">ITEM CODE</th>
+																<th scope="col" class="col-1">BARCODE</th>
+																<th scope="col" class="col-2">CATEGORY</th>
+																<th scope="col" class="col-2">PRODUCT</th>
+																<th scope="col" class="col-2">PRODUCT TYPES</th>
+																<th scope="col" class="col-2">TYPES</th>
+																<th scope="col" class="col-1">STOCKS</th>
+																<th scope="col" class="col-2">PRICE</th>
+																<th scope="col" class="col-2">ACTION</th>
 															</tr>
 														</thead>
 
-														<tbody id="tableBody">
-															<?php
-															$sql = "SELECT p.product_Id, p.item_code, p.barcode, p.category_Id, p.category_product_Id, p.product_type_Id, p.type_Id, p.stocks, p.prize, p.archive, c.category_Id, c.category_Name, cp.category_product_Id, cp.product_Name, cpi.category_product_item_Id, cpi.product_item_name, cpit.category_product_item_type_Id, cpit.product_item_type_name FROM products p INNER JOIN category_table c ON p.category_Id = c.category_Id INNER JOIN category_product_table cp ON p.category_product_Id = cp.category_product_Id INNER JOIN category_product_item_table cpi ON p.product_type_Id = cpi.category_product_item_Id INNER JOIN category_product_item_type_table cpit ON p.type_Id = cpit.category_product_item_type_Id WHERE p.archive='Yes'";
-															$result = $conn->query($sql);
-															?>
-															<?php if ($result->num_rows > 0) { ?>
-																<?php while ($row = $result->fetch_assoc()) { ?>
-																	<tr>
-																		<td class="td-product text-center d-none" style="font-size: 18px; font-weight: 700"><?php echo $row['product_Id']; ?></td>
-																		<td class="td-product text-center" style="font-size: 18px; font-weight: 700"><?php echo $row['item_code']; ?></td>
-																		<td class="td-product text-center" style="font-size: 18px; font-weight: 700"><?php echo $row['barcode']; ?></td>
-																		<td class="td-product text-center" style="font-size: 18px; font-weight: 700"><?php echo $row['category_Name']; ?></td>
-																		<td class="td-product text-center" style="font-size: 18px; font-weight: 700"><?php echo $row['product_Name']; ?></td>
-																		<td class="td-product text-center" style="font-size: 18px; font-weight: 700"><?php echo $row['product_item_name']; ?></td>
-																		<td class="td-product text-center" style="font-size: 18px; font-weight: 700"><?php echo $row['product_item_type_name']; ?>
-																		<td class="td-product text-center" style="font-size: 18px; font-weight: 700"><?php echo $row['stocks']; ?></td>
-																		<td class="td-product text-center" style="font-size: 18px; font-weight: 700"><?php echo $row['prize']; ?></td>
-																		<td class="d-flex justify-content-around align-items-center">
-																			<!-- <button type="button" class="btn btn-danger btn-sm ml-2" data-id="<?php echo $row['product_Id']; ?>" onclick="confirmDeleteProduct(this);">
-																			ARCHIVE
-																		</button>
-																		<div id="myModal" class="modal fade" >
-																			<div class="modal-dialog">
-																				<div class="modal-content">
-																					<div class="modal-body d-flex justify-content-center align-items-center" style="height: 200px; width: 100%; flex-direction: column;  ">
-																						<p class="h5">Are you sure you want to Restore Product?</p>
-																						<form action="" id="form-archive-product">
-																							<input type="text" name="id" class="d-none">
-																						</form>
-																						<div class="d-flex justify-content-center align-items-center mt-3 px-5" style="flow-direction: column; width: 100%;" >
-																							<button type="button" style="width: 49%;" class="btn btn-default mr-1" data-dismiss="modal">Close</button>
-																							<button type="submit" style="width: 49%;" form="form-delete-user" class="btn btn-danger ml-1" id="archive_product_btn" data-dismiss="modal">Update</button>
-																						</div>
-																					</div>
-																				</div>
-																			</div>
-																		</div> -->
-																			<button type="button" class="btn btn-danger btn-sm" data-id="<?php echo $row['product_Id']; ?>" onclick="confirmDeleteProduct(this);">
-																				UNARCHIVE
-																			</button>
-																			<div id="myModalProduct" class="modal fade">
-																				<div class="modal-dialog">
-																					<div class="modal-content">
-																						<div class="modal-body d-flex justify-content-center align-items-center" style="height: 200px; width: 100%; flex-direction: column;  ">
-																							<p class="h5">Are you sure you want to Restore Products?</p>
-																							<form action="" id="form-archive-product">
-																								<input type="text" name="id" class="d-none">
-																							</form>
-																							<div class="d-flex justify-content-center align-items-center mt-3 px-5" style="flow-direction: column; width: 100%;">
-																								<button type="button" style="width: 49%;" class="btn btn-default mr-1" data-dismiss="modal">Close</button>
-																								<button type="submit" style="width: 49%;" form="form-delete-user" class="btn btn-danger ml-1" id="archive_product_btn" data-dismiss="modal">Update</button>
+														<tbody>
+															<?php if (count($products) > 0):
+																foreach ($products as $id => $product): ?>
+																	<tr style="font-size: 18px; font-weight: 700;" class="center-text default">
+																		<td class="d-none"><?= $id ?></td>
+
+																		<?php foreach ($product as $key => $data):
+																			if ($key == 'price'):
+																				echo "<td>&#8369; " . number_format($data, 2, '.', ' ') . "</td>";
+																			else:
+																				echo "<td>$data</td>";
+																			endif;
+																		endforeach; ?>
+
+																		<td>
+																			<div class="d-flex justify-content-around align-items-center">
+																				<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#products-modal-<?= $id ?>" data-id="<?= $id ?>">
+																					UNARCHIVE
+																				</button>
+
+																				<div id="products-modal-<?= $id ?>" class="modal fade">
+																					<div class="modal-dialog">
+																						<div class="modal-content">
+																							<div class="modal-body d-flex justify-content-center align-items-center w-100 flex-column" style="height: auto;">
+																								<p class="h5">Are you sure you want to restore this product?</p>
+
+																								<br>
+																								<p class="h5">This product is:</p>
+
+																								<div class="border rounded w-100">
+																									<table class="table table-borderless m-0">
+																										<tr>
+																											<td class="text-left">Category:</td>
+																											<td class="text-right"><?= $product['category'] ?></td>
+																										</tr>
+																										<tr>
+																											<td class="text-left">Product:</td>
+																											<td class="text-right"><?= $product['subcategory'] ?></td>
+																										</tr>
+																										<tr>
+																											<td class="text-left">Product Type:</td>
+																											<td class="text-right"><?= $product['product'] ?></td>
+																										</tr>
+																										<tr>
+																											<td class="text-left">Type:</td>
+																											<td class="text-right"><?= $product['variant'] ?></td>
+																										</tr>
+																									</table>
+																								</div>
+
+																								<form class="unarchive" id="unarchive-products-<?= $id ?>">
+																									<input type="hidden" name="id" value="<?= $id ?>">
+																									<input type="hidden" name="action" value="restoreProduct">
+																									<input type="submit" class="d-none" id="submit-unarchive-products-<?= $id ?>">
+																								</form>
+
+																								<div class="d-flex justify-content-center align-items-center mt-3 flex-row w-100">
+																									<button type="button" class="btn btn-default w-25 mx-2" data-dismiss="modal">Close</button>
+																									<label for="submit-unarchive-products-<?= $id ?>" class="btn btn-danger w-25 mx-2" tabindex="0">Update</label>
+																								</div>
 																							</div>
 																						</div>
 																					</div>
@@ -401,8 +446,12 @@
 																			</div>
 																		</td>
 																	</tr>
-																<?php } ?>
-															<?php } ?>
+															<?php endforeach;
+																else: ?>
+																<tr>
+																	<td colspan="10" class="text-center">No Archived Product</td>
+																</tr>
+															<?php endif; ?>
 														</tbody>
 													</table>
 												</div>
@@ -410,50 +459,52 @@
 
 											<!-- Account -->
 											<div class="tab-pane fade" id="v-pills-accounts" role="tabpanel" aria-labelledby="v-pills-accounts-tab">
-												<div class="table-container mt-3">
-													<table class="table table-hover table-border table-sm">
+												<div class="table-container">
+													<table class="table table-hover table-border table-sm text-nowrap">
 														<thead>
-															<tr>
-																<th scope="col" class="text-center d-none" style="font-size: 20px; font-weight: 700">ID</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">FIRST NAME</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">LAST NAME</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">EMAIL</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">USER TYPE</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">STATUS</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">DATE CREATED</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">ACTION</th>
+															<tr class="center-text">
+																<th scope="col" class="d-none">USER ID</th>
+																<th scope="col" class="col-3">NAME</th>
+																<th scope="col" class="col-2">EMAIL</th>
+																<th scope="col" class="col-2">USER TYPE</th>
+																<th scope="col" class="col-3">DATE CREATED</th>
+																<th scope="col" class="col-2">ACTION</th>
 															</tr>
 														</thead>
+
 														<tbody>
-															<?php
-															$sql = "SELECT * FROM officials WHERE status='Inactive' ORDER BY officials_Id DESC";
-															$result = $conn->query($sql);
-															?>
-															<?php if ($result->num_rows > 0) { ?>
-																<?php while ($row = $result->fetch_assoc()) { ?>
-																	<tr>
-																		<td class="text-center d-none" style="font-size: 20px;"><?php echo $row['officials_Id']; ?></td>
-																		<td class="text-center" style="font-size: 20px;"><?php echo $row['first_name']; ?></td>
-																		<td class="text-center" style="font-size: 20px;"><?php echo $row['last_name']; ?></td>
-																		<td class="text-center" style="font-size: 20px;"><?php echo $row['email_address']; ?></td>
-																		<td class="text-center" style="font-size: 20px;"><?php echo $row['user_type']; ?></td>
-																		<td class="text-center" style="font-size: 20px;"><?php echo $row['status']; ?></td>
-																		<td class="text-center" style="font-size: 20px;"><?php echo date("F j Y", strtotime($row['date_created'])); ?></td>
-																		<td class="d-flex justify-content-around align-items-center">
-																			<button type="button" class="btn btn-danger btn-sm ml-2" data-id="<?php echo $row['officials_Id']; ?>" onclick="confirmDeleteAccount(this);">
-																				UNARCHIVE
-																			</button>
-																			<div id="myModalAccount" class="modal fade">
-																				<div class="modal-dialog">
-																					<div class="modal-content">
-																						<div class="modal-body d-flex justify-content-center align-items-center" style="height: 200px; width: 100%; flex-direction: column;  ">
-																							<p class="h5">Are you sure you want to Restore this Account?</p>
-																							<form action="" id="form-archive-account">
-																								<input type="text" name="id" class="d-none">
-																							</form>
-																							<div class="d-flex justify-content-center align-items-center mt-3 px-5" style="flow-direction: column; width: 100%;">
-																								<button type="button" style="width: 49%;" class="btn btn-default mr-1" data-dismiss="modal">Close</button>
-																								<button type="submit" style="width: 49%;" form="form-delete-user" class="btn btn-danger ml-1" id="archive_account_btn" data-dismiss="modal">Update</button>
+															<?php if (count($users) > 0):
+																foreach ($users as $id => $user): ?>
+																	<tr class="center-text">
+																		<td class="d-none"><?= $id ?></td>
+
+																		<?php foreach ($user as $key => $data):
+																			if ($key == "name") $name = $data; ?>
+																		<td><?= $data ?></td>
+																		<?php endforeach; ?>
+
+																		<td>
+																			<div class="d-flex justify-content-around align-items-center">
+																				<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#users-modal-<?= $id ?>" data-id="<?= $id ?>">
+																					UNARCHIVE
+																				</button>
+
+																				<div id="users-modal-<?= $id ?>" class="modal fade">
+																					<div class="modal-dialog">
+																						<div class="modal-content">
+																							<div class="modal-body d-flex justify-content-center align-items-center w-100 flex-column" style="height: 200px;">
+																								<p class="h5">Are you sure you want to activate <b><?= $name ?></b>'s account?</p>
+
+																								<form class="unarchive" id="unarchive-users-<?= $id ?>">
+																									<input type="hidden" name="id" value="<?= $id ?>">
+																									<input type="hidden" name="action" value="restoreAccount">
+																									<input type="submit" class="d-none" id="submit-unarchive-users-<?= $id ?>">
+																								</form>
+
+																								<div class="d-flex justify-content-center align-items-center mt-3 flex-row w-100">
+																									<button type="button" class="btn btn-default w-25 mx-2" data-dismiss="modal">Close</button>
+																									<label for="submit-unarchive-users-<?= $id ?>" class="btn btn-danger w-25 mx-2" tabindex="0">Update</label>
+																								</div>
 																							</div>
 																						</div>
 																					</div>
@@ -461,9 +512,12 @@
 																			</div>
 																		</td>
 																	</tr>
-																<?php
-																} ?>
-															<?php } ?>
+															<?php endforeach;
+																else: ?>
+																<tr>
+																	<td colspan="6" class="text-center">No Inactive User</td>
+																</tr>
+															<?php endif; ?>
 														</tbody>
 													</table>
 												</div>
@@ -471,46 +525,51 @@
 
 											<!-- Supplier -->
 											<div class="tab-pane fade" id="v-pills-suppliers" role="tabpanel" aria-labelledby="v-pills-suppliers-tab">
-												<div class="table-container mt-3">
-													<table class="table table-hover table-border table-sm">
+												<div class="table-container">
+													<table class="table table-hover table-border table-sm text-nowrap">
 														<thead>
-															<tr>
-																<th scope="col" class="text-center d-none" style="font-size: 20px; font-weight: 700">ID</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">DATE CREATED </th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">SUPPLIER </th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">CONTACT PERSON</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">STATUS</th>
-																<th scope="col" class="text-center" style="font-size: 20px; font-weight: 700">ACTION</th>
+															<tr class="center-text">
+																<th scope="col" class="d-none">SUPPLIER ID</th>
+																<th scope="col" class="col-3">SUPPLIER</th>
+																<th scope="col" class="col-3">CONTACT PERSON</th>
+																<th scope="col" class="col-3">DATE CREATED</th>
+																<th scope="col" class="col-3">ACTION</th>
 															</tr>
 														</thead>
-														<tbody id="">
-															<?php
-															$sql = "SELECT * FROM supplier WHERE status='Inactive' ORDER BY supplier_Id DESC";
-															$result = $conn->query($sql);
-															?>
-															<?php if ($result->num_rows > 0) { ?>
-																<?php while ($row = $result->fetch_assoc()) { ?>
-																	<tr>
-																		<td class="text-center d-none" style="font-size: 20px;"><?php echo $row['supplier_Id']; ?></td>
-																		<td class="text-center" style="font-size: 20px;"><?php echo date("F j Y", strtotime($row['date_created'])); ?></td>
-																		<td class="text-center" style="font-size: 20px;"><?php echo $row['name']; ?></td>
-																		<td class="text-center" style="font-size: 20px;"><?php echo $row['contact_person']; ?></td>
-																		<td class="text-center" style="font-size: 20px;"><?php echo $row['status']; ?></td>
-																		<td class="d-flex justify-content-center align-items-center">
-																			<button type="button" class="btn btn-danger btn-sm ml-2" data-id="<?php echo $row['supplier_Id']; ?>" onclick="confirmDeleteSupplier(this);">
-																				UNARCHIVE
-																			</button>
-																			<div id="myModalSupplier" class="modal fade">
-																				<div class="modal-dialog">
-																					<div class="modal-content">
-																						<div class="modal-body d-flex justify-content-center align-items-center" style="height: 200px; width: 100%; flex-direction: column;  ">
-																							<p class="h5">Are you sure you want to Restore this Supplier?</p>
-																							<form action="" id="form-archive-supplier">
-																								<input type="text" name="id" class="d-none">
-																							</form>
-																							<div class="d-flex justify-content-center align-items-center mt-3 px-5" style="flow-direction: column; width: 100%;">
-																								<button type="button" style="width: 49%;" class="btn btn-default mr-1" data-dismiss="modal">Close</button>
-																								<button type="submit" style="width: 49%;" form="form-delete-user" class="btn btn-danger ml-1" id="archive_supplier_btn" data-dismiss="modal">Update</button>
+
+														<tbody>
+															<?php if (count($suppliers) > 0):
+																foreach ($suppliers as $id => $supplier): ?>
+																	<tr class="center-text">
+																		<td class="d-none"><?= $id ?></td>
+
+																		<?php foreach ($supplier as $key => $data):
+																			if ($key == "name") $name = $data; ?>
+																		<td><?= $data ?></td>
+																		<?php endforeach; ?>
+
+																		<td>
+																			<div class="d-flex justify-content-around align-items-center">
+																				<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#suppliers-modal-<?= $id ?>" data-id="<?= $id ?>">
+																					UNARCHIVE
+																				</button>
+
+																				<div id="suppliers-modal-<?= $id ?>" class="modal fade">
+																					<div class="modal-dialog">
+																						<div class="modal-content">
+																							<div class="modal-body d-flex justify-content-center align-items-center w-100 flex-column" style="height: 200px;">
+																								<p class="h5">Are you sure you want to activate supplier <b><?= $name ?></b>?</p>
+
+																								<form class="unarchive" id="unarchive-suppliers-<?= $id ?>">
+																									<input type="hidden" name="id" value="<?= $id ?>">
+																									<input type="hidden" name="action" value="restoreSupplier">
+																									<input type="submit" class="d-none" id="submit-unarchive-suppliers-<?= $id ?>">
+																								</form>
+
+																								<div class="d-flex justify-content-center align-items-center mt-3 flex-row w-100">
+																									<button type="button" class="btn btn-default w-25 mx-2" data-dismiss="modal">Close</button>
+																									<label for="submit-unarchive-suppliers-<?= $id ?>" class="btn btn-danger w-25 mx-2" tabindex="0">Update</label>
+																								</div>
 																							</div>
 																						</div>
 																					</div>
@@ -518,9 +577,12 @@
 																			</div>
 																		</td>
 																	</tr>
-																<?php
-																} ?>
-															<?php } ?>
+															<?php endforeach;
+																else: ?>
+																<tr>
+																	<td colspan="6" class="text-center">No Inactive Supplier</td>
+																</tr>
+															<?php endif; ?>
 														</tbody>
 													</table>
 												</div>
