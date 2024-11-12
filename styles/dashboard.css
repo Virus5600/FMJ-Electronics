@@ -10,8 +10,6 @@
     background: none !important;
 }
 
-
-
 .top-header-container{
     background-color: #e4e4e481;
     display: flex;
@@ -174,6 +172,8 @@
     color: white;
 }
 
+
+/* GENERAL CSS */
 .hover-effect {
 	transition: 0.1s ease-in opacity, 0.1s ease-in transform;
 }
@@ -182,6 +182,30 @@
 	opacity: 0.8;
 	transform: scale(1.05);
 }
+
+.important-right::after,
+.important-after::after,
+.important-end::after,
+.important-left::before,
+.important-before::before,
+.important-start::before {
+	content: "*";
+	color: red;
+}
+
+.important-right::after,
+.important-after::after,
+.important-end::after {
+	margin-left: 4px;
+}
+
+.important-left::before,
+.important-before::before,
+.important-start::before {
+	margin-right: 4px;
+}
+
+/* GENERAL CSS END */
 
 
 /* CATEGORY CSS */
