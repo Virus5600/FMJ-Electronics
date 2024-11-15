@@ -58,9 +58,15 @@ if (isset($_POST['action'])) {
 		// dd($sql);
 		$result = $conn->query($sql);
 		if ($result)
-			echo "success";
+			response([
+				"status" => 200,
+				"message" => "success"
+			], 200);
 		else
-			echo "error";
+			response([
+				"status" => 500,
+				"message" => "error"
+			], 500);
 	}
 
 	// TODO: Implement the archiveActions below

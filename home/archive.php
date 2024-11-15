@@ -23,9 +23,9 @@
 
 	// FETCH PRODUCT ITEMS
 	$connection = $conn->query("SELECT `category_product_item_table`.`category_product_item_Id`, `category_product_item_table`.`product_item_name` FROM category_product_item_table WHERE archive='Yes' ORDER BY category_product_item_Id DESC");
-	$productItems = [];
+	$productTypes = [];
 	while ($row = $connection->fetch_assoc())
-		$productItems[$row["category_product_item_Id"]] = $row["product_item_name"];
+		$productTypes[$row["category_product_item_Id"]] = $row["product_item_name"];
 
 	// FETCH PRODUCT VARIANTS
 	$connection = $conn->query("SELECT `category_product_item_type_table`.`category_product_item_type_Id`, `category_product_item_type_table`.`product_item_type_name` FROM category_product_item_type_table WHERE archive='Yes' ORDER BY category_product_item_type_Id DESC");
@@ -255,8 +255,8 @@
 														</thead>
 
 														<tbody>
-															<?php if (count($productItems) > 0):
-																foreach ($productItems as $id => $name): ?>
+															<?php if (count($productTypes) > 0):
+																foreach ($productTypes as $id => $name): ?>
 																	<tr class="center-text">
 																		<td class="d-none"><?= $id ?></td>
 																		<td><?= $name ?></td>
@@ -689,7 +689,7 @@
 							console.log(response)
 						}
 
-						switch (response) {
+						switch (response.message) {
 							case `success`:
 								showFlash(false);
 								break;

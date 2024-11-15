@@ -1,20 +1,26 @@
-<?php 
-
+<?php
 require_once("../connection.php");
 
-if(isset($_POST['product_ids'])){
-    $product_ids = $_POST['product_ids'];
+if(isset($_POST['category_product_Id'])) {
+    $id = $_POST['category_product_Id'];
 
-    $sql = "SELECT * FROM category_product_item_table WHERE category_product_id='$product_ids' ORDER BY category_product_item_Id DESC";
-    $result = $conn->query($sql);
+	$connection = $conn->query("SELECT category_product_item_Id as id, product_item_name as name FROM category_product_item_table WHERE category_product_Id='$id' ORDER BY category_product_item_Id DESC");
+    $productTypes = fetchAll($connection);
 
-    echo '<option value="" class="font-weight-bold" style="font-size:18px;">Select Product Type</option>';
+    $content = '<option class="font-weight-bold" style="font-size:18px;" value selected disabled hidden>Select Product Type</option>';
 
-    if($result->num_rows > 0){
-        while($row = $result->fetch_assoc()){
-            echo '<option value="'. $row["category_product_item_Id"].'" class="font-weight-bold" style="font-size:18px;">'.$row["product_item_name"].'</option>';
-        }
-    }
+	if (count($productTypes) > 0)
+		foreach ($productTypes as $p)
+			$content .= "<option value=\"$p->id\" class=\"font-weight-bold\" style=\"font-size:18px;\">$p->name</option>";
+
+	response([
+		"status" => 200,
+		"data"=> $content
+	], 200);
 }
-
-?>
+else {
+	response([
+		"status" => 400,
+		"message"=> "Malformed request syntax: `category_product_Id` is not provided."
+	], 400);
+}

@@ -1,17 +1,13 @@
 <?php
-    $host = "localhost";
-    $username = "root";
-    $password = "";
-    $database = "fmj_electronics";
+	$host = "localhost";
+	$username = "root";
+	$password = "";
+	$database = "fmj_electronics";
 
-    $conn = new mysqli($host, $username, $password, $database);
+	$conn = new mysqli($host, $username, $password, $database);
 
-    if($conn->connect_error){
-        die("Connection Failed".$conn->connect_error);
-    }
+	include_once "processPhp/utilities.php";
 
-	function dd($content) {
-		var_dump($content);
-		die();
-	};
-?>
+	if ($conn->connect_error) {
+		die("Connection Failed $conn->connect_error");
+	}

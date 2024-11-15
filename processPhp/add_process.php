@@ -1,5 +1,78 @@
 <?php
+include_once("../processPhp/Query.php");
+use ProcessPhp\Query;
+
 require_once("../connection.php");
+
+const ACTIONS = [
+	"addProduct" => [
+		"table" => "products",
+		"columns" => [
+			"item_code" => null,
+			"barcode" => null,
+			"category_Id" => null,
+			"category_product_Id" => null,
+			"product_type_Id" => null,
+			"type_Id" => null,
+			"stocks" => 0,
+			"prize" => 0,
+			"archive" => "No"
+		]
+	],
+];
+
+if (isset($_POST["action"])) {
+	$action = $_POST["action"];
+
+	if (empty($action)) {
+		response([
+			"status"=> 400,
+			"message"=> "Malformed request syntax: `action` is not provided."
+		], 400);
+	}
+
+	// TODO: Add the creation of the `addProducts` action here.
+	if (array_key_exists($action, ACTIONS)) {
+		$action = ACTIONS[$action];
+		$query = Query::table($action["table"]);
+
+		foreach ($action["columns"] as $column => $value) {
+			if (isset($_POST[$column])) {
+				$query->insert($column, $_POST[$column]);
+			}
+		}
+
+		$itemCode = "";
+		$char = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+		for ($i = 0; $i < 7; $i++)
+			$itemCode .= $char[rand(0, strlen($char) - 1)];
+		$query->insert('item_code', $itemCode);
+		$query->insert('archive', "No");
+
+		if ($query->push()) {
+			response([
+				"status" => 200,
+				"message" => "Product added successfully."
+			]);
+			return;
+		}
+
+		response([
+			"status" => 400,
+			"message" => "Failed to add product.",
+			"error" => $query->error()
+		], 400);
+	}
+}
+
+// ADD PRODUCTS
+
+function addProduct($data): void
+{
+	global $conn;
+	$conn->begin_transaction();
+}
 
 // ADD PRODUCTS
 if (isset($_POST['action']) && $_POST['action'] == "addProducts") {
