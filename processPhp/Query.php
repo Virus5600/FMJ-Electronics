@@ -106,6 +106,14 @@ class Query
 	private array $insert = [];
 
 	/**
+	 * The columns to update. This array contains another array, containing
+	 * the column name and the value to update.
+	 *
+	 * @var array
+	 */
+	private array $update = [];
+
+	/**
 	 * Defines the primary key of the table. This variable is used to identify
 	 * the primary key of the table and is used for updating and deleting records.
 	 *
@@ -718,11 +726,17 @@ class Query
 		return $this;
 	}
 
-	protected function insert(string $column, string $value): Query
+	/**
+	 * Generates an INSERT query with the specified column and value. The function
+	 * will always make the values a string. If the value is anything other than a
+	 * string, the function will convert it to a string by simply enclosing it with
+	 * single quotes.
+	 */
+	protected function insert(string $column, mixed $value): Query
 	{
 		// Checks the parameters if they are empty.
 		foreach (self::getFunctionParams('insert') as $arg) {;
-			if (empty(${$arg})) {
+			if (empty(${$arg}) && ($arg == "value" && !is_numeric($value))) {
 				throw new Exception("Missing parameter: {$arg}");
 			}
 		}
@@ -740,13 +754,42 @@ class Query
 		return $this;
 	}
 
+	/**
+	 * Generates an UPDATE query with the specified column and value. The function
+	 * will always make the values a string. If the value is anything other than a
+	 * string, the function will convert it to a string by simply enclosing it with
+	 * single quotes.
+	 */
+	protected function update(string $column, mixed $value): Query
+	{
+		// Checks the parameters if they are empty.
+		foreach (self::getFunctionParams('update') as $arg) {
+			if (empty(${$arg}) && ($arg == "value" && !is_numeric($value))) {
+				throw new Exception("Missing parameter: {$arg}");
+			}
+		}
+
+		// Pre-process the column to put backticks if there are dots in the column name.
+		$matches = preg_split("/\./", $column);
+		if (count($matches) == 2) {
+			$column = "`{$matches[0]}`.`{$matches[1]}`";
+		} else {
+			$column = "`{$column}`";
+		}
+
+		array_push($this->update, ["col" => $column, "val" => $value]);
+
+		return $this;
+	}
+
 	// QUERY EXECUTION FUNCTIONS //
 	/**
 	 * Builds the query based on the functions called. The function will check if
 	 * the `table` function is called first before building the query. If the `table`
 	 * function is not called, the function will throw an exception.
 	 *
-	 * Once the query is built, the function will execute the query and get the results.
+	 * Once the query is built, the function will execute the `SELECT` query and get
+	 * the results.
 	 *
 	 * The results will be returned as an array of objects.
 	 *
@@ -762,7 +805,7 @@ class Query
 		// Convert the data to an object
 		$data = array_map(fn ($r) => (object) $r, $data);
 
-		return $data;
+		return $data ?? [];
 	}
 
 	/**
@@ -789,8 +832,8 @@ class Query
 	 * the `table` function is called first before building the query. If the `table`
 	 * function is not called, the function will throw an exception.
 	 *
-	 * Once the query is built, the function will execute the query and return the
-	 * result.
+	 * Once the query is built, the function will execute the `INSERT` query and
+	 * return the result.
 	 *
 	 * The result will be a boolean value that determines whether the query was
 	 * successful or not.
@@ -800,6 +843,39 @@ class Query
 	protected function push(): bool
 	{
 		$this->buildQuery(INSERT);
+		try {
+			$this->conn->begin_transaction();
+
+			$result = $this->conn->query($this->query);
+
+			$this->conn->commit();
+		} catch (Exception $e) {
+			response([
+				"message" => $e->getMessage(),
+				"query" => $this->query,
+				"sqlError" => $this->error()
+			], 500);
+			return false;
+		}
+		return $result;
+	}
+
+	/**
+	 * Builds the query based on the functions called. The function will check if
+	 * the `table` function is called first before building the query. If the `table`
+	 * function is not called, the function will throw an exception.
+	 *
+	 * Once the query is built, the function will execute the `UPDATE` query and return
+	 * the result.
+	 *
+	 * The result will be a boolean value that determines whether the query was
+	 * successful or not.
+	 *
+	 * @return bool
+	 */
+	protected function apply(): bool
+	{
+		$this->buildQuery(UPDATE);
 		try {
 			$this->conn->begin_transaction();
 
@@ -1060,6 +1136,28 @@ class Query
 			$query .= "$cols) VALUES ($values)";
 		}
 		else if ($target == UPDATE) {
+			$query = "UPDATE `{$this->table['table']}` SET ";
+
+			$set = "";
+			foreach ($this->update as $update) {
+				$set .= "{$update['col']} = '{$update['val']}', ";
+			}
+
+			$set = rtrim($set, ", ");
+			$query .= "$set";
+
+			// WHERE
+			if (!empty($this->where)) {
+				$query .= " WHERE ";
+				$whereQuery = "";
+
+				foreach ($this->where as $where) {
+					$whereQuery .= " {$where['con']} {$where['col']} {$where['ops']} {$where['val']}";
+				}
+
+				$whereQuery = trim(ltrim(ltrim($whereQuery, "AND "), " OR"));
+				$query .= " $whereQuery";
+			}
 		}
 		else if ($target == DELETE) {
 		}
@@ -1067,8 +1165,23 @@ class Query
 		$this->query = $query;
 	}
 
+	/**
+	 * Updates the columns of the table. The function will fetch the columns of the
+	 * table and store them in the `columns` property. Additionally, the function
+	 * will also fetch the primary key of the table and store it in the `primaryKey`
+	 * property.
+	 *
+	 * If the table is not set, the function will throw an exception.
+	 *
+	 * @return Query
+	 *
+	 * @throws BadMethodCallException If the table is not set.
+	 */
 	private function updateTableCols(): Query
 	{
+		// Checks if the table is set. Throws an exception if the table is not set.
+		if (empty($this->table)) throw new BadMethodCallException("Table is not set.");
+
 		$this->columns = $this->conn
 			->query("DESC `" . $this->table['table'] . "`")
 			->fetch_all(MYSQLI_ASSOC);
@@ -1095,7 +1208,7 @@ class Query
 	 *
 	 * @throws Exception If the table is not set.
 	 */
-	protected function getColumns(?string $table = null): array
+	public function getColumns(?string $table = null): array
 	{
 		if (empty($this->columns)) {
 			if (empty($this->table['table'])) {
@@ -1112,6 +1225,20 @@ class Query
 	}
 
 	/**
+	 * Fetches the primary key of the specified table. If the table is not set, the
+	 * function will throw an exception.
+	 *
+	 * @return string
+	 */
+	public function pk(): string
+	{
+		if (empty($this->primaryKey)) {
+			$this->updateTableCols();
+		}
+		return $this->primaryKey;
+	}
+
+	/**
 	 * Fetches the error message from the connection.
 	 *
 	 * The function will return an object with the following properties:
@@ -1121,7 +1248,7 @@ class Query
 	 *
 	 * @return string
 	 */
-	protected function error(): object
+	public function error(): object
 	{
 		$code = $this->conn->errno;
 		$fullError = $this->conn->error;

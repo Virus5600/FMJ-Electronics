@@ -95,6 +95,7 @@
 						</div>
 
 						<div class="addBtn-container d-flex justify-content-between mb-3">
+							<?php // Search Form ?>
 							<form action="product_search.php" method="post" class="d-flex mr-5 mt-3">
 								<input type="text" value="" name="search" id="search" class="form-control mr-1" placeholder="Search">
 								<input type="submit" name="searchSubmit" value="Search" id="searchSubmit" class="btn btn-dark ml-1">
@@ -179,7 +180,7 @@
 													<?php // PRICE ?>
 													<div class="col-md-6">
 														<label for="price" style="font-size: 18px; font-weight: 600"class="important-before">Price</label>
-														<input type="number" id="price" name="prize" class="form-control" min="0" step="0.25" required>
+														<input type="number" id="price" name="prize" class="form-control" min="0" step="1.00" required>
 													</div>
 												</div>
 
@@ -195,6 +196,7 @@
 							</div>
 						</div>
 
+						<?php // PRODUCTS TABLE ?>
 						<div class="table-container">
 							<table class="table table-hover table-border table-sm">
 								<thead>
@@ -212,7 +214,7 @@
 									</tr>
 								</thead>
 
-								<?php // PRODUCTS TABLE ?>
+								<?php // TABLE BODY ?>
 								<tbody id="tableBody">
 									<?php
 										if (count($products) > 0):
@@ -231,9 +233,8 @@
 
 												<?php // ACTIONS ?>
 												<td class="d-flex justify-content-around align-items-center">
-													<?php // Button trigger modal ?>
+													<?php // EDIT ?>
 													<div class="d-flex justify-content-around align-items-center">
-														<?php // EDIT ?>
 														<button type="button" class="btn btn-secondary btn-sm mx-1" data-toggle="modal" data-target="#edit-product-modal-<?= $p->id ?>" data-id="<?= $p->id ?>">
 															EDIT
 														</button>
@@ -250,12 +251,13 @@
 																	</div>
 
 																	<div class="modal-body">
-																		<input type="hidden" name="product_Id" value="<?= $p->id ?>">
+																		<input type="hidden" name="id" value="<?= $p->id ?>">
+																		<input type="hidden" name="action" value="editProduct">
 
 																		<?php // ITEM CODE ?>
 																		<div class="form-group">
 																			<label for="product-item-code-<?= $p->id ?>" style="font-size: 18px; font-weight: 600"class="important-before">Item Code</label>
-																			<input type="text" id="product-item-code-<?= $p->id ?>" name="item_code" class="form-control" value="<?= $p->item_code ?>" readonly>
+																			<input type="text" id="product-item-code-<?= $p->id ?>" name="item_code" class="form-control" value="<?= $p->item_code ?>" disabled>
 																		</div>
 
 																		<?php // BAR CODE ?>
@@ -267,38 +269,38 @@
 																		<?php // CATEGORY ?>
 																		<div class="form-group">
 																			<label for="product-category-<?= $p->id ?>" style="font-size: 18px; font-weight: 600"class="important-before">Category</label>
-																			<input type="text" id="product-category-<?= $p->id ?>" name="category_Name" class="form-control" value="<?= $p->category_name ?>" readonly>
+																			<input type="text" id="product-category-<?= $p->id ?>" name="category_Name" class="form-control" value="<?= $p->category_name ?>" disabled>
 																		</div>
 
 																		<?php // PRODUCT ?>
 																		<div class="form-group">
 																			<label for="product-category-product-<?= $p->id ?>" style="font-size: 18px; font-weight: 600"class="important-before">Product</label>
-																			<input type="text" id="product-category-product-<?= $p->id ?>" name="product_Name" class="form-control" value="<?= $p->product_name ?>" readonly>
+																			<input type="text" id="product-category-product-<?= $p->id ?>" name="product_Name" class="form-control" value="<?= $p->product_name ?>" disabled>
 																		</div>
 
 																		<?php // PRODUCT ITEM ?>
 																		<div class="form-group">
 																			<label for="product-item-<?= $p->id ?>" style="font-size: 18px; font-weight: 600"class="important-before">Product Type</label>
-																			<input type="text" id="product-item-<?= $p->id ?>" name="product_item_name" class="form-control" value="<?= $p->product_item_name ?>" readonly>
+																			<input type="text" id="product-item-<?= $p->id ?>" name="product_item_name" class="form-control" value="<?= $p->product_item_name ?>" disabled>
 																		</div>
 
 																		<?php // PRODUCT ITEM TYPE ?>
 																		<div class="form-group">
 																			<label for="product-item-type-<?= $p->id ?>" style="font-size: 18px; font-weight: 600"class="important-before">Type</label>
-																			<input type="text" id="product-item-type-<?= $p->id ?>" name="product_item_type_name" class="form-control" value="<?= $p->product_item_type_name ?>" readonly>
+																			<input type="text" id="product-item-type-<?= $p->id ?>" name="product_item_type_name" class="form-control" value="<?= $p->product_item_type_name ?>" disabled>
 																		</div>
 
 																		<div class="row">
 																			<?php // STOCKS ?>
 																			<div class="col-md-6">
 																				<label for="stocks-<?= $p->id ?>" style="font-size: 18px; font-weight: 600"class="important-before">Stocks</label>
-																				<input type="text" id="stocks-<?= $p->id ?>" name="stocks" class="form-control" value="<?= $p->stocks ?>" readonly>
+																				<input type="text" id="stocks-<?= $p->id ?>" name="stocks" class="form-control" value="<?= $p->stocks ?>" disabled>
 																			</div>
 
 																			<?php // PRICE ?>
 																			<div class="col-md-6">
 																				<label for="price-<?= $p->id ?>" style="font-size: 18px; font-weight: 600"class="important-before">Price</label>
-																				<input type="number" id="price-<?= $p->id ?>" name="prize" class="form-control" value="<?= number_format($p->price, 2,) ?>" min="0" step="0.25">
+																				<input type="number" id="price-<?= $p->id ?>" name="prize" class="form-control" value="<?= number_format($p->price, 2,) ?>" min="0" step="1.00">
 																			</div>
 																		</div>
 																	</div>
@@ -310,23 +312,54 @@
 																</form>
 															</div>
 														</div>
+													</div>
 
-														<?php // ARCHIVE ?>
+													<?php // ARCHIVE ?>
+													<div class="d-flex justify-content-around align-items-center">
 														<button type="button" class="btn btn-danger btn-sm mx-1" data-toggle="modal" data-target="#archive-product-modal-<?= $p->id?>" data-id="<?= $p->id ?>">
 															ARCHIVE
 														</button>
 
-														<div class="modal fade text-left" id="archive-product-modal-<?= $p->id ?>" tabindex="-1" aria-hidden="true">
+														<div id="archive-product-modal-<?= $p->id ?>" class="modal fade text-left" tabindex="-1" aria-hidden="true">
 															<div class="modal-dialog">
 																<div class="modal-content">
-																	<div class="modal-body d-flex justify-content-center align-items-center" style="height: 200px; width: 100%; flex-direction: column;  ">
-																		<p class="h5">Are you sure you want to archive Product?</p>
-																		<form action="" id="form-archive-product">
-																			<input type="text" name="id" class="d-none">
+																	<div class="modal-body d-flex justify-content-center align-items-center w-100 flex-column" style="height: auto;">
+																		<p class="h5">Are you sure you want to archive this product?</p>
+
+																		<br>
+																		<p class="h5">This product is:</p>
+
+																		<div class="border rounded w-100">
+																			<table class="table table-borderless m-0">
+																				<tr>
+																					<td class="text-left">Category:</td>
+																					<td class="text-right"><?= $p->category_name ?></td>
+																				</tr>
+																				<tr>
+																					<td class="text-left">Product:</td>
+																					<td class="text-right"><?= $p->product_name ?></td>
+																				</tr>
+																				<tr>
+																					<td class="text-left">Product Type:</td>
+																					<td class="text-right"><?= $p->product_item_name ?></td>
+																				</tr>
+																				<tr>
+																					<td class="text-left">Type:</td>
+																					<td class="text-right"><?= $p->product_item_type_name ?></td>
+																				</tr>
+																			</table>
+																		</div>
+
+																		<form class="form-archive-product">
+																			<input type="hidden" name="id" value="<?= $p->id?>">
+																			<input type="hidden" name="type" value="product">
+																			<input type="hidden" name="action" value="archive">
+																			<input type="submit" class="d-none" id="submit-archive-products-<?= $p->id ?>">
 																		</form>
+
 																		<div class="d-flex justify-content-center align-items-center mt-3 px-5 w-100">
-																			<button type="button" style="width: 49%;" class="btn btn-default mr-1" data-dismiss="modal">Close</button>
-																			<button type="submit" style="width: 49%;" form="form-delete-user" class="btn btn-danger ml-1" id="archive_btn" data-dismiss="modal">Archive</button>
+																			<button type="button" class="btn btn-default w-25 mx-2" data-dismiss="modal">Close</button>
+																			<label for="submit-archive-products-<?= $p->id ?>" class="btn btn-danger w-25 mx-2 my-0" tabindex="0">Archive</label>
 																		</div>
 																	</div>
 																</div>
@@ -359,159 +392,13 @@
 
 		<script>
 			$(document).ready(function() {
-				// ARCHIVE REQUEST AJAX
-				$("#archive_btn").click(function(e) {
-					e.preventDefault();
-					console.log("napindot si a");
-					// e.preventDefault();
-					$.ajax({
-						url: "../processPhp/archive_process.php",
-						method: "POST",
-						data: $("#form-archive-product").serialize() + "&action=archivemainProduct",
-						success: function(response) {
-							if (response == "successArchive") {
-								Swal.fire({
-									position: 'center',
-									icon: 'success',
-									title: 'Successfully Archived!',
-									showConfirmButton: false,
-									timer: 1300
-								}).then(function() {
-									window.location = "products.php";
-								})
-							} else if (response == "errorArchive") {
-								Swal.fire({
-									position: 'center',
-									icon: 'success',
-									title: 'There is an error, Please try again',
-									showConfirmButton: false,
-									timer: 1300
-								}).then(function() {
-									window.location = "products.php";
-								})
-							}
-						}
-					})
-				});
-
-				$('.editBtn').on('click', function() {
-					console.log("Clikced")
-					$('#edit_product').modal('show');
-					$tr = $(this).closest('tr');
-					var data = $tr.children("td").map(function() {
-						return $(this).text();
-					}).get();
-					$('#edit_product_Id').val(data[0]);
-					$('#edit_item_code').val(data[1]);
-					$('#edit_bar_code').val(data[2]);
-					$('#edit_category_Id').val(data[3]);
-					$('#edit_category_product_Id').val(data[4]);
-					$('#edit_product_type_Id').val(data[5]);
-					$('#edit_type_Id').val(data[6]);
-					$('#stocks').val(data[7]);
-					$('#prize').val(data[8]);
-				});
-
-				// FOR EDIT PRODUCT AJAX
-				$("#update_productBtn").click(function(e) {
-					e.preventDefault();
-					$.ajax({
-						url: "../processPhp/edit_process.php",
-						method: "POST",
-						data: $("#edit-form").serialize() + '&action=editProduct',
-						success: function(response) {
-							console.log(response)
-							if (response == "editedSuccess") {
-								Swal.fire({
-									position: 'center',
-									icon: 'success',
-									title: 'Edited Product Successfully!',
-									showConfirmButton: false,
-									timer: 1500
-								}).then(function() {
-									window.location = "./products.php";
-								})
-							} else if (response == "error") {
-								Swal.fire({
-									position: 'center',
-									icon: 'error',
-									title: 'There is an error. Please Try Again!',
-									showConfirmButton: false,
-									timer: 1500
-								}).then(function() {
-									window.location = "./products.php";
-								})
-							}
-						}
-					})
-				});
-
-				$("#addBtn").on('click', function(e) {
-					e.preventDefault();
-					// console.log($("#add-form").serialize());
-
-					// $.ajax({
-					// 	url: "../processPhp/add_process.php",
-					// 	method: 'POST',
-					// 	data: $("#add-form").serialize() + '&action=addProducts',
-					// 	success: function(response) {
-					// 		console.log(response);
-					// 		if (response == "addedSuccess") {
-					// 			Swal.fire({
-					// 				position: 'center',
-					// 				icon: 'success',
-					// 				title: 'Added Category Successfully!',
-					// 				showConfirmButton: false,
-					// 				timer: 1500
-					// 			}).then(function() {
-					// 				window.location = "./products.php";
-					// 			});
-					// 		} else if (response == "error") {
-					// 			Swal.fire({
-					// 				position: 'center',
-					// 				icon: 'error',
-					// 				title: 'There is an error. Please Try Again!',
-					// 				showConfirmButton: false,
-					// 				timer: 1500
-					// 			}).then(function() {
-					// 				window.location = "./products.php";
-					// 			})
-					// 		} else if (response == "productExist") {
-					// 			Swal.fire({
-					// 				position: 'center',
-					// 				icon: 'error',
-					// 				title: 'The product already exist in the table!',
-					// 				showConfirmButton: false,
-					// 				timer: 1500
-					// 			});
-					// 		} else if (response == "fieldRequired") {
-					// 			Swal.fire({
-					// 				position: 'center',
-					// 				icon: 'error',
-					// 				title: 'All fields are required. Please try again thankyou!',
-					// 				showConfirmButton: false,
-					// 				timer: 1500
-					// 			})
-					// 		}
-					// 	},
-					// 	error: function(response) {
-					// 		console.log(response);
-					// 		Swal.fire({
-					// 			position: 'center',
-					// 			icon: 'error',
-					// 			title: 'There is an error. Please Try Again!',
-					// 			showConfirmButton: false,
-					// 			timer: 1500
-					// 		});
-					// 	}
-					// })
-				});
-
 				// GET PROCESS
 				const urls = {
 					category: "../processPhp/getProduct_process.php",
 					product: "../processPhp/getProductType_process.php",
-					productType: "../processPhp/getType_process.php"
+					productType: "../processPhp/getType_process.php",
+					archive: "../processPhp/archive_process.php",
+					edit: "../processPhp/edit_process.php"
 				};
 
 				const defaultOption = {
@@ -594,24 +481,81 @@
 					}
 				});
 
-				// TODO: Implement Edit and Archive Processes
+				// EDIT PROCESS
+				$(`.edit-form`).on(`submit`, (e) => {
+					e.preventDefault();
+
+					let obj = $(e.target);
+					let formData = obj.serialize();
+
+					submitForm(urls.edit, formData)
+						.then((response) => {
+							console.table(response);
+							switch (response.status) {
+								case 200:
+									showFlash(response.message, false);
+									break;
+
+								default:
+									console.warn(response);
+									showFlash();
+									break;
+							}
+						}, (response) => {
+							console.warn(response.responseText);
+							showFlash(response.responseText);
+						});
+				});
+
+				// ARCHIVE PROCESS
+				$(`.form-archive-product`).on(`submit`, (e) => {
+					e.preventDefault();
+
+					let obj = $(e.target);
+					let formData = obj.serialize();
+
+					submitForm(urls.archive, formData)
+						.then((response) => {
+							switch (response.status) {
+								case 200:
+									showFlash(response.message, false);
+									break;
+
+								default:
+									console.warn(response);
+									showFlash();
+									break;
+							}
+						}, (response) => {
+							console.warn(response.responseText);
+							showFlash(response.responseText);
+						});
+				});
 
 				// UTIL
 				function showFlash(title = 'Failed', failed = true) {
 					data = {
 						position: 'center',
-						icon: failed ? 'warning' : 'success',
-						title: title,
-						showConfirmButton: false,
-						timer: 1300
+						icon: 'success',
+						showConfirmButton: false
 					};
+
+					if (failed) {
+						data.icon = `warning`;
+						data.title = `Failed`;
+						data.html = title;
+					}
+					else {
+						data.title = title;
+						data.timer = 1300;
+					}
 
 					if (failed) {
 						data.icon = `warning`;
 					}
 
 					Swal.fire(data).then(() => {
-						window.location.reload();
+						if (!failed) window.location.reload();
 					});
 				}
 			});

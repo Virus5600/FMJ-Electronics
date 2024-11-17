@@ -157,7 +157,8 @@
 
 																								<form class="unarchive" id="unarchive-category-<?= $id ?>">
 																									<input type="hidden" name="id" value="<?= $id ?>">
-																									<input type="hidden" name="action" value="restoreCategory">
+																									<input type="hidden" name="type" value="category">
+																									<input type="hidden" name="action" value="restore">
 																									<input type="submit" class="d-none" id="submit-unarchive-category-<?= $id ?>">
 																								</form>
 
@@ -216,7 +217,8 @@
 
 																								<form class="unarchive" id="unarchive-subcategory-<?= $id ?>">
 																									<input type="hidden" name="id" value="<?= $id ?>">
-																									<input type="hidden" name="action" value="restoreSubcategory">
+																									<input type="hidden" name="type" value="subcategory">
+																									<input type="hidden" name="action" value="restore">
 																									<input type="submit" class="d-none" id="submit-unarchive-subcategory-<?= $id ?>">
 																								</form>
 
@@ -275,7 +277,8 @@
 
 																								<form class="unarchive" id="unarchive-items-<?= $id ?>">
 																									<input type="hidden" name="id" value="<?= $id ?>">
-																									<input type="hidden" name="action" value="restoreProductItem">
+																									<input type="hidden" name="type" value="productItem">
+																									<input type="hidden" name="action" value="restore">
 																									<input type="submit" class="d-none" id="submit-unarchive-items-<?= $id ?>">
 																								</form>
 
@@ -334,7 +337,8 @@
 
 																								<form class="unarchive" id="unarchive-variants-<?= $id ?>">
 																									<input type="hidden" name="id" value="<?= $id ?>">
-																									<input type="hidden" name="action" value="restoreProductVariant">
+																									<input type="hidden" name="type" value="productVariant">
+																									<input type="hidden" name="action" value="restore">
 																									<input type="submit" class="d-none" id="submit-unarchive-variants-<?= $id ?>">
 																								</form>
 
@@ -385,13 +389,14 @@
 																	<tr style="font-size: 18px; font-weight: 700;" class="center-text default">
 																		<td class="d-none"><?= $id ?></td>
 
-																		<?php foreach ($product as $key => $data):
-																			if ($key == 'price'):
+																		<?php foreach ($product as $key => $data) {
+																			if ($key == 'price') {
 																				echo "<td>&#8369; " . number_format($data, 2, '.', ' ') . "</td>";
-																			else:
+																			}
+																			else {
 																				echo "<td>$data</td>";
-																			endif;
-																		endforeach; ?>
+																			}
+																		} ?>
 
 																		<td>
 																			<div class="d-flex justify-content-around align-items-center">
@@ -399,7 +404,7 @@
 																					UNARCHIVE
 																				</button>
 
-																				<div id="products-modal-<?= $id ?>" class="modal fade">
+																				<div id="products-modal-<?= $id ?>" class="modal fade" tabindex="-1" aria-hidden="true">
 																					<div class="modal-dialog">
 																						<div class="modal-content">
 																							<div class="modal-body d-flex justify-content-center align-items-center w-100 flex-column" style="height: auto;">
@@ -431,13 +436,14 @@
 
 																								<form class="unarchive" id="unarchive-products-<?= $id ?>">
 																									<input type="hidden" name="id" value="<?= $id ?>">
-																									<input type="hidden" name="action" value="restoreProduct">
+																									<input type="hidden" name="type" value="product">
+																									<input type="hidden" name="action" value="restore">
 																									<input type="submit" class="d-none" id="submit-unarchive-products-<?= $id ?>">
 																								</form>
 
 																								<div class="d-flex justify-content-center align-items-center mt-3 flex-row w-100">
 																									<button type="button" class="btn btn-default w-25 mx-2" data-dismiss="modal">Close</button>
-																									<label for="submit-unarchive-products-<?= $id ?>" class="btn btn-danger w-25 mx-2" tabindex="0">Update</label>
+																									<label for="submit-unarchive-products-<?= $id ?>" class="btn btn-danger w-25 mx-2 my-0" tabindex="0">Update</label>
 																								</div>
 																							</div>
 																						</div>
@@ -497,7 +503,8 @@
 
 																								<form class="unarchive" id="unarchive-users-<?= $id ?>">
 																									<input type="hidden" name="id" value="<?= $id ?>">
-																									<input type="hidden" name="action" value="restoreAccount">
+																									<input type="hidden" name="type" value="account">
+																									<input type="hidden" name="action" value="restore">
 																									<input type="submit" class="d-none" id="submit-unarchive-users-<?= $id ?>">
 																								</form>
 
@@ -678,22 +685,13 @@
 					method: "POST",
 					data: obj.serialize(),
 					success: (response) => {
-						if (window.location.origin == `http://localhost`) {
-							Swal.fire({
-								title: `Response`,
-								width: `100%`,
-								html: response,
-								icon: `info`
-							});
-
-							console.log(response)
-						}
-
-						switch (response.message) {
-							case `success`:
+						switch (response.status) {
+							case 200:
 								showFlash(false);
 								break;
-							case `error`:
+
+							default:
+								console.warn(response);
 								showFlash();
 								break;
 						}
