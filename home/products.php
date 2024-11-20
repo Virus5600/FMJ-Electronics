@@ -13,20 +13,14 @@
 	}
 	$user_type = $_SESSION['user_type'];
 
-	// Categories
-	$connection = $conn->query(query:
-		"SELECT
-			`category_Id` AS `id`,
-			`category_Name` AS `name`
-		FROM
-			category_table
-		ORDER BY
-			category_Id
-		DESC
-	");
-	$categories = fetchAll($connection);
+	// CATEGORIES
+	$categories = Query::table('category_table')
+		->select(['category_Id AS id', 'category_Name AS name'])
+		->orderBy('category_Id', 'DESC')
+		->get();
 
-	// Products
+	// PRODUCTS
+	// Initial query
 	$products = Query::table('products as p')
 		->select([
 			"p.product_Id AS id",
@@ -49,9 +43,84 @@
 		->innerJoin('category_table as c', [['p.category_Id', 'c.category_Id']])
 		->innerJoin('category_product_table as cp', [['p.category_product_Id', 'cp.category_product_Id']])
 		->innerJoin('category_product_item_table as cpi', [['p.product_type_Id', 'cpi.category_product_item_Id']])
-		->innerJoin('category_product_item_type_table as cpit', [['p.type_Id', 'cpit.category_product_item_type_Id']])
-		->orderBy("p.product_Id", "DESC")
+		->innerJoin('category_product_item_type_table as cpit', [['p.type_Id', 'cpit.category_product_item_type_Id']]);
+
+	// Implements the search
+	$search = null;
+	if ($_GET['search'] ?? false) {
+		$search = $_GET['search'];
+		$products = $products->where('p.item_code', 'LIKE', "%$search%")
+			->orWhere('p.barcode', 'LIKE', "%$search%")
+			->orWhere('c.category_Name', 'LIKE', "%$search%")
+			->orWhere('cp.product_Name', 'LIKE', "%$search%")
+			->orWhere('cpi.product_item_name', 'LIKE', "%$search%")
+			->orWhere('cpit.product_item_type_name', 'LIKE', "%$search%");
+	}
+	else {
+		$uri = $_SERVER['REQUEST_URI'];
+		$newUri = removeParams($uri, 'search');
+
+		if (hasParam($uri, 'search'))
+			header("Location: $newUri");
+	}
+
+	// Implements the price range
+	$minPrice = $_GET['minPrice'] ?? null;
+	$maxPrice = $_GET['maxPrice'] ?? null;
+	if ($minPrice) {
+		$products = $products->where('p.prize', '>=', $minPrice);
+	}
+	else {
+		$uri = $_SERVER['REQUEST_URI'];
+		$newUri = removeParams($uri, 'minPrice');
+
+		if (hasParam($uri, 'minPrice'))
+			header("Location: $newUri");
+	}
+
+	if ($maxPrice) {
+		$products = $products->where('p.prize', '<=', $maxPrice);
+	}
+	else {
+		$uri = $_SERVER['REQUEST_URI'];
+		$newUri = removeParams($uri, 'maxPrice');
+
+		if (hasParam($uri, 'maxPrice'))
+			header("Location: $newUri");
+	}
+
+	// Implements the stocks range
+	$minStock = $_GET['minStock'] ?? null;
+	$maxStock = $_GET['maxStock'] ?? null;
+	if ($minStock) {
+		$products = $products->where('p.stocks', '>=', $minStock);
+	}
+	else {
+		$uri = $_SERVER['REQUEST_URI'];
+		$newUri = removeParams($uri, 'minStock');
+
+		if (hasParam($uri, 'minStock'))
+			header("Location: $newUri");
+	}
+
+	if ($maxStock) {
+		$products = $products->where('p.stocks', '<=', $maxStock);
+	}
+	else {
+		$uri = $_SERVER['REQUEST_URI'];
+		$newUri = removeParams($uri, 'maxStock');
+
+		if (hasParam($uri, 'maxStock'))
+			header("Location: $newUri");
+	}
+
+	// Sort the products. Defaults to DESC
+	$products = $products->orderBy("p.product_Id", "DESC")
 		->get();
+
+	// Form Action URI
+	$formUri = preg_split("/\//", $_SERVER['REQUEST_URI']);
+	$formUri = $formUri[count($formUri) - 1];
 ?>
 
 <!DOCTYPE html>
@@ -95,10 +164,30 @@
 						</div>
 
 						<div class="addBtn-container d-flex justify-content-between mb-3">
-							<?php // Search Form ?>
-							<form action="product_search.php" method="post" class="d-flex mr-5 mt-3">
-								<input type="text" value="" name="search" id="search" class="form-control mr-1" placeholder="Search">
-								<input type="submit" name="searchSubmit" value="Search" id="searchSubmit" class="btn btn-dark ml-1">
+							<form action="<?= $formUri ?>" method="GET" class="mr-5 mt-3 d-flex flex-row">
+								<?php // Search Input ?>
+								<div class="input-group mx-1">
+									<input type="text" value="<?= $search ?>" name="search" id="search" class="form-control" placeholder="Search">
+								</div>
+
+								<?php // Price Range ?>
+								<div class="input-group mx-1">
+									<input type="number" value="<?= $minPrice ?>" name="minPrice" id="minPrice" class="form-control" placeholder="₱ Min" min="0">
+									<span class="input-group-text rounded-0"> - </span>
+									<input type="number" value="<?= $maxPrice ?>" name="maxPrice" id="maxPrice" class="form-control" placeholder="₱ Max" min="0">
+								</div>
+
+								<?php // Stocks Range ?>
+								<div class="input-group mx-1">
+									<input type="number" value="<?= $minStock ?>" name="minStock" id="minStock" class="form-control" placeholder="Min Stock" min="0">
+									<span class="input-group-text rounded-0"> - </span>
+									<input type="number" value="<?= $maxStock ?>" name="maxStock" id="maxStock" class="form-control" placeholder="Max Stock" min="0">
+								</div>
+
+								<button type="submit" class="btn btn-dark" title="Search">
+									<!-- <i class="fas fa-magnifying-glass"></i> -->
+									Search
+								</button>
 							</form>
 
 							<?php // Button trigger modal ?>
@@ -391,7 +480,7 @@
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
 
 		<script>
-			$(document).ready(function() {
+			$(() => {
 				// GET PROCESS
 				const urls = {
 					category: "../processPhp/getProduct_process.php",
@@ -559,6 +648,24 @@
 					});
 				}
 			});
+
+			$(() => {
+				// Sets the minimum value of the maxPrice input
+				$(`#minPrice`).on(`change`, (e) => {
+					let obj = $(e.target);
+					let minPrice = parseInt(obj.val());
+
+					$(`#maxPrice`).attr(`min`, minPrice);
+				});
+
+				// Sets the minimum value of the maxStock input
+				$(`#minStock`).on(`change`, (e) => {
+					let obj = $(e.target);
+					let minStock = parseInt(obj.val());
+
+					$(`#maxStock`).attr(`min`, minStock);
+				});
+			})
 		</script>
 	</body>
 </html>

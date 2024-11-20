@@ -662,12 +662,14 @@ class Query
 		$aggregates = ["COUNT", "SUM", "AVG", "MIN", "MAX"];
 
 		if ($len > 0) {
+			$hasAggregate = false;
 			foreach ($aggregates as $aggregate) {
 				$matches = [];
 
 				// Checks for aggregates in the query.
 				if (preg_match("/\b(?<agg>$aggregate)\b\(`?(?<col>[\w\.]+)`?\)/", $split[0], $matches)) {
 					$colTarget = preg_split("/\./", $matches["col"]);
+					$hasAggregate = true;
 
 					if (count($colTarget) == 2) {
 						$split[0] = "$matches[agg](`{$colTarget[0]}`.`{$colTarget[1]}`)";
@@ -679,8 +681,17 @@ class Query
 				}
 			}
 
+			if (!$hasAggregate) {
+				$colTarget = preg_split("/\./", $split[0]);
+				if (count($colTarget) == 2) {
+					$split[0] = "`{$colTarget[0]}`.`{$colTarget[1]}`";
+				} else {
+					$split[0] = "`{$split[0]}`";
+				}
+			}
+
 			if ($len == 3) {
-				$newQuery["col"] = "`{$split[0]}`";
+				$newQuery["col"] = "{$split[0]}";
 				$newQuery["ops"] = "{$split[1]}";
 				$newQuery["val"] = "'{$split[2]}'";
 				$newQuery["con"] = "OR";

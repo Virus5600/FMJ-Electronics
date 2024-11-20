@@ -504,6 +504,51 @@
 		return '';
 	}
 
+	/**
+	 * Removes a parameter from a URL and returns the new URL.
+	 *
+	 * @param string $url The URL to remove the parameter from.
+	 * @param string|array $param The parameter(s) to remove.
+	 *
+	 * @return string The new URL without the parameter.
+	 */
+	function removeParams(string $url, string|array $param): string
+	{
+		if (is_string($param)) $param = [$param];
+
+		foreach ($param as $p) {
+			if (!is_string($p)) continue;
+
+			$url = preg_replace('/&?' . $p . '=[^&]*/', '', $url);
+			$url = preg_replace('/\?&/', '?', $url);
+			$url = preg_replace('/\?$/', '', $url);
+		}
+
+		return $url;
+	}
+
+	/**
+	 * Checks whether a URL has a certain parameter or not.
+	 *
+	 * @param string $url The URL to check.
+	 * @param string $param The parameter to check for.
+	 *
+	 * @return bool Whether the URL has the parameter or not.
+	 */
+	function hasParam(string $url, string $param): bool
+	{
+		$queryParamsStr = parse_url($url, PHP_URL_QUERY);
+		$queryParamsStr = empty($queryParamsStr) ? [] : explode('&', $queryParamsStr);
+
+		$queryParams = [];
+		foreach ($queryParamsStr as $qp) {
+			$qp = explode('=', $qp);
+			$queryParams[$qp[0]] = $qp[1];
+		}
+
+		return array_key_exists($param, $queryParams);
+	}
+
 	// RESPONSE FUNCTIONS //
 
 	/**
